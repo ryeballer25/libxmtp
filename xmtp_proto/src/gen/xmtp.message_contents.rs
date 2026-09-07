@@ -69,6 +69,106 @@ impl ::prost::Name for Signature {
         "/xmtp.message_contents.Signature".into()
     }
 }
+/// Ciphertext represents encrypted payload.
+/// It is definited as a union to support cryptographic algorithm agility.
+/// The payload is accompanied by the cryptographic parameters
+/// required by the chosen encryption scheme.
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct Ciphertext {
+    #[prost(oneof = "ciphertext::Union", tags = "1")]
+    pub union: ::core::option::Option<ciphertext::Union>,
+}
+/// Nested message and enum types in `Ciphertext`.
+pub mod ciphertext {
+    /// Encryption: AES256-GCM
+    /// Key derivation function: HKDF-SHA256
+    #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+    pub struct Aes256gcmHkdfsha256 {
+        /// 32 bytes
+        #[prost(bytes = "vec", tag = "1")]
+        pub hkdf_salt: ::prost::alloc::vec::Vec<u8>,
+        /// 12 bytes
+        #[prost(bytes = "vec", tag = "2")]
+        pub gcm_nonce: ::prost::alloc::vec::Vec<u8>,
+        /// encrypted payload
+        #[prost(bytes = "vec", tag = "3")]
+        pub payload: ::prost::alloc::vec::Vec<u8>,
+    }
+    impl ::prost::Name for Aes256gcmHkdfsha256 {
+        const NAME: &'static str = "Aes256gcmHkdfsha256";
+        const PACKAGE: &'static str = "xmtp.message_contents";
+        fn full_name() -> ::prost::alloc::string::String {
+            "xmtp.message_contents.Ciphertext.Aes256gcmHkdfsha256".into()
+        }
+        fn type_url() -> ::prost::alloc::string::String {
+            "/xmtp.message_contents.Ciphertext.Aes256gcmHkdfsha256".into()
+        }
+    }
+    #[derive(Clone, PartialEq, Eq, Hash, ::prost::Oneof)]
+    pub enum Union {
+        #[prost(message, tag = "1")]
+        Aes256GcmHkdfSha256(Aes256gcmHkdfsha256),
+    }
+}
+impl ::prost::Name for Ciphertext {
+    const NAME: &'static str = "Ciphertext";
+    const PACKAGE: &'static str = "xmtp.message_contents";
+    fn full_name() -> ::prost::alloc::string::String {
+        "xmtp.message_contents.Ciphertext".into()
+    }
+    fn type_url() -> ::prost::alloc::string::String {
+        "/xmtp.message_contents.Ciphertext".into()
+    }
+}
+/// SignedEciesCiphertext represents an ECIES encrypted payload and a signature
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct SignedEciesCiphertext {
+    /// serialized Ecies message
+    #[prost(bytes = "vec", tag = "1")]
+    pub ecies_bytes: ::prost::alloc::vec::Vec<u8>,
+    /// signature of sha256(ecies_bytes) signed with the IdentityKey
+    #[prost(message, optional, tag = "2")]
+    pub signature: ::core::option::Option<Signature>,
+}
+/// Nested message and enum types in `SignedEciesCiphertext`.
+pub mod signed_ecies_ciphertext {
+    /// Ecies is ciphertext encrypted using ECIES with a MAC
+    #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+    pub struct Ecies {
+        /// 65 bytes
+        #[prost(bytes = "vec", tag = "1")]
+        pub ephemeral_public_key: ::prost::alloc::vec::Vec<u8>,
+        /// 16 bytes
+        #[prost(bytes = "vec", tag = "2")]
+        pub iv: ::prost::alloc::vec::Vec<u8>,
+        /// 32 bytes
+        #[prost(bytes = "vec", tag = "3")]
+        pub mac: ::prost::alloc::vec::Vec<u8>,
+        /// encrypted payload with block size of 16
+        #[prost(bytes = "vec", tag = "4")]
+        pub ciphertext: ::prost::alloc::vec::Vec<u8>,
+    }
+    impl ::prost::Name for Ecies {
+        const NAME: &'static str = "Ecies";
+        const PACKAGE: &'static str = "xmtp.message_contents";
+        fn full_name() -> ::prost::alloc::string::String {
+            "xmtp.message_contents.SignedEciesCiphertext.Ecies".into()
+        }
+        fn type_url() -> ::prost::alloc::string::String {
+            "/xmtp.message_contents.SignedEciesCiphertext.Ecies".into()
+        }
+    }
+}
+impl ::prost::Name for SignedEciesCiphertext {
+    const NAME: &'static str = "SignedEciesCiphertext";
+    const PACKAGE: &'static str = "xmtp.message_contents";
+    fn full_name() -> ::prost::alloc::string::String {
+        "xmtp.message_contents.SignedEciesCiphertext".into()
+    }
+    fn type_url() -> ::prost::alloc::string::String {
+        "/xmtp.message_contents.SignedEciesCiphertext".into()
+    }
+}
 /// UnsignedPublicKey represents a generalized public key,
 /// defined as a union to support cryptographic algorithm agility.
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
@@ -220,104 +320,229 @@ impl ::prost::Name for PublicKeyBundle {
         "/xmtp.message_contents.PublicKeyBundle".into()
     }
 }
-/// Ciphertext represents encrypted payload.
-/// It is definited as a union to support cryptographic algorithm agility.
-/// The payload is accompanied by the cryptographic parameters
-/// required by the chosen encryption scheme.
-#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
-pub struct Ciphertext {
-    #[prost(oneof = "ciphertext::Union", tags = "1")]
-    pub union: ::core::option::Option<ciphertext::Union>,
+/// Unsealed invitation V1
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct InvitationV1 {
+    /// topic name chosen for this conversation.
+    /// It MUST be randomly generated bytes (length >= 32),
+    /// then base64 encoded without padding
+    #[prost(string, tag = "1")]
+    pub topic: ::prost::alloc::string::String,
+    /// A context object defining metadata
+    #[prost(message, optional, tag = "2")]
+    pub context: ::core::option::Option<invitation_v1::Context>,
+    /// The user's consent proof
+    #[prost(message, optional, tag = "4")]
+    pub consent_proof: ::core::option::Option<ConsentProofPayload>,
+    /// message encryption scheme and keys for this conversation.
+    #[prost(oneof = "invitation_v1::Encryption", tags = "3")]
+    pub encryption: ::core::option::Option<invitation_v1::Encryption>,
 }
-/// Nested message and enum types in `Ciphertext`.
-pub mod ciphertext {
-    /// Encryption: AES256-GCM
-    /// Key derivation function: HKDF-SHA256
+/// Nested message and enum types in `InvitationV1`.
+pub mod invitation_v1 {
+    /// Supported encryption schemes
+    /// AES256-GCM-HKDF-SHA256
     #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
     pub struct Aes256gcmHkdfsha256 {
-        /// 32 bytes
+        /// randomly generated key material (32 bytes)
         #[prost(bytes = "vec", tag = "1")]
-        pub hkdf_salt: ::prost::alloc::vec::Vec<u8>,
-        /// 12 bytes
-        #[prost(bytes = "vec", tag = "2")]
-        pub gcm_nonce: ::prost::alloc::vec::Vec<u8>,
-        /// encrypted payload
-        #[prost(bytes = "vec", tag = "3")]
-        pub payload: ::prost::alloc::vec::Vec<u8>,
+        pub key_material: ::prost::alloc::vec::Vec<u8>,
     }
     impl ::prost::Name for Aes256gcmHkdfsha256 {
         const NAME: &'static str = "Aes256gcmHkdfsha256";
         const PACKAGE: &'static str = "xmtp.message_contents";
         fn full_name() -> ::prost::alloc::string::String {
-            "xmtp.message_contents.Ciphertext.Aes256gcmHkdfsha256".into()
+            "xmtp.message_contents.InvitationV1.Aes256gcmHkdfsha256".into()
         }
         fn type_url() -> ::prost::alloc::string::String {
-            "/xmtp.message_contents.Ciphertext.Aes256gcmHkdfsha256".into()
+            "/xmtp.message_contents.InvitationV1.Aes256gcmHkdfsha256".into()
         }
     }
+    /// The context type
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct Context {
+        /// Expected to be a URI (ie xmtp.org/convo1)
+        #[prost(string, tag = "1")]
+        pub conversation_id: ::prost::alloc::string::String,
+        /// Key value map of additional metadata that would be exposed to
+        /// application developers and could be used for filtering
+        #[prost(map = "string, string", tag = "2")]
+        pub metadata: ::std::collections::HashMap<
+            ::prost::alloc::string::String,
+            ::prost::alloc::string::String,
+        >,
+    }
+    impl ::prost::Name for Context {
+        const NAME: &'static str = "Context";
+        const PACKAGE: &'static str = "xmtp.message_contents";
+        fn full_name() -> ::prost::alloc::string::String {
+            "xmtp.message_contents.InvitationV1.Context".into()
+        }
+        fn type_url() -> ::prost::alloc::string::String {
+            "/xmtp.message_contents.InvitationV1.Context".into()
+        }
+    }
+    /// message encryption scheme and keys for this conversation.
     #[derive(Clone, PartialEq, Eq, Hash, ::prost::Oneof)]
-    pub enum Union {
-        #[prost(message, tag = "1")]
+    pub enum Encryption {
+        /// Specify the encryption method to process the key material properly.
+        #[prost(message, tag = "3")]
         Aes256GcmHkdfSha256(Aes256gcmHkdfsha256),
     }
 }
-impl ::prost::Name for Ciphertext {
-    const NAME: &'static str = "Ciphertext";
+impl ::prost::Name for InvitationV1 {
+    const NAME: &'static str = "InvitationV1";
     const PACKAGE: &'static str = "xmtp.message_contents";
     fn full_name() -> ::prost::alloc::string::String {
-        "xmtp.message_contents.Ciphertext".into()
+        "xmtp.message_contents.InvitationV1".into()
     }
     fn type_url() -> ::prost::alloc::string::String {
-        "/xmtp.message_contents.Ciphertext".into()
+        "/xmtp.message_contents.InvitationV1".into()
     }
 }
-/// SignedEciesCiphertext represents an ECIES encrypted payload and a signature
+/// Sealed Invitation V1 Header
+/// Header carries information that is unencrypted, thus readable by the network
+/// it is however authenticated as associated data with the AEAD scheme used
+/// to encrypt the invitation body, thus providing tamper evidence.
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
-pub struct SignedEciesCiphertext {
-    /// serialized Ecies message
-    #[prost(bytes = "vec", tag = "1")]
-    pub ecies_bytes: ::prost::alloc::vec::Vec<u8>,
-    /// signature of sha256(ecies_bytes) signed with the IdentityKey
+pub struct SealedInvitationHeaderV1 {
+    #[prost(message, optional, tag = "1")]
+    pub sender: ::core::option::Option<SignedPublicKeyBundle>,
     #[prost(message, optional, tag = "2")]
-    pub signature: ::core::option::Option<Signature>,
+    pub recipient: ::core::option::Option<SignedPublicKeyBundle>,
+    #[prost(uint64, tag = "3")]
+    pub created_ns: u64,
 }
-/// Nested message and enum types in `SignedEciesCiphertext`.
-pub mod signed_ecies_ciphertext {
-    /// Ecies is ciphertext encrypted using ECIES with a MAC
-    #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
-    pub struct Ecies {
-        /// 65 bytes
-        #[prost(bytes = "vec", tag = "1")]
-        pub ephemeral_public_key: ::prost::alloc::vec::Vec<u8>,
-        /// 16 bytes
-        #[prost(bytes = "vec", tag = "2")]
-        pub iv: ::prost::alloc::vec::Vec<u8>,
-        /// 32 bytes
-        #[prost(bytes = "vec", tag = "3")]
-        pub mac: ::prost::alloc::vec::Vec<u8>,
-        /// encrypted payload with block size of 16
-        #[prost(bytes = "vec", tag = "4")]
-        pub ciphertext: ::prost::alloc::vec::Vec<u8>,
-    }
-    impl ::prost::Name for Ecies {
-        const NAME: &'static str = "Ecies";
-        const PACKAGE: &'static str = "xmtp.message_contents";
-        fn full_name() -> ::prost::alloc::string::String {
-            "xmtp.message_contents.SignedEciesCiphertext.Ecies".into()
-        }
-        fn type_url() -> ::prost::alloc::string::String {
-            "/xmtp.message_contents.SignedEciesCiphertext.Ecies".into()
-        }
-    }
-}
-impl ::prost::Name for SignedEciesCiphertext {
-    const NAME: &'static str = "SignedEciesCiphertext";
+impl ::prost::Name for SealedInvitationHeaderV1 {
+    const NAME: &'static str = "SealedInvitationHeaderV1";
     const PACKAGE: &'static str = "xmtp.message_contents";
     fn full_name() -> ::prost::alloc::string::String {
-        "xmtp.message_contents.SignedEciesCiphertext".into()
+        "xmtp.message_contents.SealedInvitationHeaderV1".into()
     }
     fn type_url() -> ::prost::alloc::string::String {
-        "/xmtp.message_contents.SignedEciesCiphertext".into()
+        "/xmtp.message_contents.SealedInvitationHeaderV1".into()
+    }
+}
+/// Sealed Invitation V1
+/// Invitation encrypted with key material derived from the sender's and
+/// recipient's public key bundles using simplified X3DH where
+/// the sender's ephemeral key is replaced with sender's pre-key.
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct SealedInvitationV1 {
+    /// encoded SealedInvitationHeaderV1 used as associated data for Ciphertext
+    #[prost(bytes = "vec", tag = "1")]
+    pub header_bytes: ::prost::alloc::vec::Vec<u8>,
+    /// Ciphertext.payload MUST contain encrypted InvitationV1.
+    #[prost(message, optional, tag = "2")]
+    pub ciphertext: ::core::option::Option<Ciphertext>,
+}
+impl ::prost::Name for SealedInvitationV1 {
+    const NAME: &'static str = "SealedInvitationV1";
+    const PACKAGE: &'static str = "xmtp.message_contents";
+    fn full_name() -> ::prost::alloc::string::String {
+        "xmtp.message_contents.SealedInvitationV1".into()
+    }
+    fn type_url() -> ::prost::alloc::string::String {
+        "/xmtp.message_contents.SealedInvitationV1".into()
+    }
+}
+/// Versioned Sealed Invitation
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct SealedInvitation {
+    #[prost(oneof = "sealed_invitation::Version", tags = "1")]
+    pub version: ::core::option::Option<sealed_invitation::Version>,
+}
+/// Nested message and enum types in `SealedInvitation`.
+pub mod sealed_invitation {
+    #[derive(Clone, PartialEq, Eq, Hash, ::prost::Oneof)]
+    pub enum Version {
+        #[prost(message, tag = "1")]
+        V1(super::SealedInvitationV1),
+    }
+}
+impl ::prost::Name for SealedInvitation {
+    const NAME: &'static str = "SealedInvitation";
+    const PACKAGE: &'static str = "xmtp.message_contents";
+    fn full_name() -> ::prost::alloc::string::String {
+        "xmtp.message_contents.SealedInvitation".into()
+    }
+    fn type_url() -> ::prost::alloc::string::String {
+        "/xmtp.message_contents.SealedInvitation".into()
+    }
+}
+/// Payload for user's consent proof to be set in the invitation
+/// Signifying the conversation should be preapproved for the user on receipt
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct ConsentProofPayload {
+    /// the user's signature in hex format
+    #[prost(string, tag = "1")]
+    pub signature: ::prost::alloc::string::String,
+    /// approximate time when the user signed
+    #[prost(uint64, tag = "2")]
+    pub timestamp: u64,
+    /// version of the payload
+    #[prost(enumeration = "ConsentProofPayloadVersion", tag = "3")]
+    pub payload_version: i32,
+}
+impl ::prost::Name for ConsentProofPayload {
+    const NAME: &'static str = "ConsentProofPayload";
+    const PACKAGE: &'static str = "xmtp.message_contents";
+    fn full_name() -> ::prost::alloc::string::String {
+        "xmtp.message_contents.ConsentProofPayload".into()
+    }
+    fn type_url() -> ::prost::alloc::string::String {
+        "/xmtp.message_contents.ConsentProofPayload".into()
+    }
+}
+/// Version of consent proof payload
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum ConsentProofPayloadVersion {
+    Unspecified = 0,
+    ConsentProofPayloadVersion1 = 1,
+}
+impl ConsentProofPayloadVersion {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "CONSENT_PROOF_PAYLOAD_VERSION_UNSPECIFIED",
+            Self::ConsentProofPayloadVersion1 => "CONSENT_PROOF_PAYLOAD_VERSION_1",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "CONSENT_PROOF_PAYLOAD_VERSION_UNSPECIFIED" => Some(Self::Unspecified),
+            "CONSENT_PROOF_PAYLOAD_VERSION_1" => Some(Self::ConsentProofPayloadVersion1),
+            _ => None,
+        }
+    }
+}
+/// A light pointer for a conversation that contains no decryption keys
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ConversationReference {
+    #[prost(string, tag = "1")]
+    pub topic: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub peer_address: ::prost::alloc::string::String,
+    #[prost(uint64, tag = "3")]
+    pub created_ns: u64,
+    #[prost(message, optional, tag = "4")]
+    pub context: ::core::option::Option<invitation_v1::Context>,
+    #[prost(message, optional, tag = "5")]
+    pub consent_proof_payload: ::core::option::Option<ConsentProofPayload>,
+}
+impl ::prost::Name for ConversationReference {
+    const NAME: &'static str = "ConversationReference";
+    const PACKAGE: &'static str = "xmtp.message_contents";
+    fn full_name() -> ::prost::alloc::string::String {
+        "xmtp.message_contents.ConversationReference".into()
+    }
+    fn type_url() -> ::prost::alloc::string::String {
+        "/xmtp.message_contents.ConversationReference".into()
     }
 }
 /// PrivateKey generalized to support different key types
@@ -697,229 +922,143 @@ impl ::prost::Name for PrivatePreferencesPayload {
         "/xmtp.message_contents.PrivatePreferencesPayload".into()
     }
 }
-/// Unsealed invitation V1
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct InvitationV1 {
-    /// topic name chosen for this conversation.
-    /// It MUST be randomly generated bytes (length >= 32),
-    /// then base64 encoded without padding
-    #[prost(string, tag = "1")]
-    pub topic: ::prost::alloc::string::String,
-    /// A context object defining metadata
-    #[prost(message, optional, tag = "2")]
-    pub context: ::core::option::Option<invitation_v1::Context>,
-    /// The user's consent proof
-    #[prost(message, optional, tag = "4")]
-    pub consent_proof: ::core::option::Option<ConsentProofPayload>,
-    /// message encryption scheme and keys for this conversation.
-    #[prost(oneof = "invitation_v1::Encryption", tags = "3")]
-    pub encryption: ::core::option::Option<invitation_v1::Encryption>,
-}
-/// Nested message and enum types in `InvitationV1`.
-pub mod invitation_v1 {
-    /// Supported encryption schemes
-    /// AES256-GCM-HKDF-SHA256
-    #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
-    pub struct Aes256gcmHkdfsha256 {
-        /// randomly generated key material (32 bytes)
-        #[prost(bytes = "vec", tag = "1")]
-        pub key_material: ::prost::alloc::vec::Vec<u8>,
-    }
-    impl ::prost::Name for Aes256gcmHkdfsha256 {
-        const NAME: &'static str = "Aes256gcmHkdfsha256";
-        const PACKAGE: &'static str = "xmtp.message_contents";
-        fn full_name() -> ::prost::alloc::string::String {
-            "xmtp.message_contents.InvitationV1.Aes256gcmHkdfsha256".into()
-        }
-        fn type_url() -> ::prost::alloc::string::String {
-            "/xmtp.message_contents.InvitationV1.Aes256gcmHkdfsha256".into()
-        }
-    }
-    /// The context type
-    #[derive(Clone, PartialEq, ::prost::Message)]
-    pub struct Context {
-        /// Expected to be a URI (ie xmtp.org/convo1)
-        #[prost(string, tag = "1")]
-        pub conversation_id: ::prost::alloc::string::String,
-        /// Key value map of additional metadata that would be exposed to
-        /// application developers and could be used for filtering
-        #[prost(map = "string, string", tag = "2")]
-        pub metadata: ::std::collections::HashMap<
-            ::prost::alloc::string::String,
-            ::prost::alloc::string::String,
-        >,
-    }
-    impl ::prost::Name for Context {
-        const NAME: &'static str = "Context";
-        const PACKAGE: &'static str = "xmtp.message_contents";
-        fn full_name() -> ::prost::alloc::string::String {
-            "xmtp.message_contents.InvitationV1.Context".into()
-        }
-        fn type_url() -> ::prost::alloc::string::String {
-            "/xmtp.message_contents.InvitationV1.Context".into()
-        }
-    }
-    /// message encryption scheme and keys for this conversation.
-    #[derive(Clone, PartialEq, Eq, Hash, ::prost::Oneof)]
-    pub enum Encryption {
-        /// Specify the encryption method to process the key material properly.
-        #[prost(message, tag = "3")]
-        Aes256GcmHkdfSha256(Aes256gcmHkdfsha256),
-    }
-}
-impl ::prost::Name for InvitationV1 {
-    const NAME: &'static str = "InvitationV1";
-    const PACKAGE: &'static str = "xmtp.message_contents";
-    fn full_name() -> ::prost::alloc::string::String {
-        "xmtp.message_contents.InvitationV1".into()
-    }
-    fn type_url() -> ::prost::alloc::string::String {
-        "/xmtp.message_contents.InvitationV1".into()
-    }
-}
-/// Sealed Invitation V1 Header
-/// Header carries information that is unencrypted, thus readable by the network
-/// it is however authenticated as associated data with the AEAD scheme used
-/// to encrypt the invitation body, thus providing tamper evidence.
+/// EciesMessage is a wrapper for ECIES encrypted payloads
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
-pub struct SealedInvitationHeaderV1 {
-    #[prost(message, optional, tag = "1")]
-    pub sender: ::core::option::Option<SignedPublicKeyBundle>,
-    #[prost(message, optional, tag = "2")]
-    pub recipient: ::core::option::Option<SignedPublicKeyBundle>,
-    #[prost(uint64, tag = "3")]
-    pub created_ns: u64,
+pub struct EciesMessage {
+    #[prost(oneof = "ecies_message::Version", tags = "1")]
+    pub version: ::core::option::Option<ecies_message::Version>,
 }
-impl ::prost::Name for SealedInvitationHeaderV1 {
-    const NAME: &'static str = "SealedInvitationHeaderV1";
-    const PACKAGE: &'static str = "xmtp.message_contents";
-    fn full_name() -> ::prost::alloc::string::String {
-        "xmtp.message_contents.SealedInvitationHeaderV1".into()
-    }
-    fn type_url() -> ::prost::alloc::string::String {
-        "/xmtp.message_contents.SealedInvitationHeaderV1".into()
-    }
-}
-/// Sealed Invitation V1
-/// Invitation encrypted with key material derived from the sender's and
-/// recipient's public key bundles using simplified X3DH where
-/// the sender's ephemeral key is replaced with sender's pre-key.
-#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
-pub struct SealedInvitationV1 {
-    /// encoded SealedInvitationHeaderV1 used as associated data for Ciphertext
-    #[prost(bytes = "vec", tag = "1")]
-    pub header_bytes: ::prost::alloc::vec::Vec<u8>,
-    /// Ciphertext.payload MUST contain encrypted InvitationV1.
-    #[prost(message, optional, tag = "2")]
-    pub ciphertext: ::core::option::Option<Ciphertext>,
-}
-impl ::prost::Name for SealedInvitationV1 {
-    const NAME: &'static str = "SealedInvitationV1";
-    const PACKAGE: &'static str = "xmtp.message_contents";
-    fn full_name() -> ::prost::alloc::string::String {
-        "xmtp.message_contents.SealedInvitationV1".into()
-    }
-    fn type_url() -> ::prost::alloc::string::String {
-        "/xmtp.message_contents.SealedInvitationV1".into()
-    }
-}
-/// Versioned Sealed Invitation
-#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
-pub struct SealedInvitation {
-    #[prost(oneof = "sealed_invitation::Version", tags = "1")]
-    pub version: ::core::option::Option<sealed_invitation::Version>,
-}
-/// Nested message and enum types in `SealedInvitation`.
-pub mod sealed_invitation {
+/// Nested message and enum types in `EciesMessage`.
+pub mod ecies_message {
     #[derive(Clone, PartialEq, Eq, Hash, ::prost::Oneof)]
     pub enum Version {
-        #[prost(message, tag = "1")]
-        V1(super::SealedInvitationV1),
+        /// Expected to be an ECIES encrypted SignedPayload
+        #[prost(bytes, tag = "1")]
+        V1(::prost::alloc::vec::Vec<u8>),
     }
 }
-impl ::prost::Name for SealedInvitation {
-    const NAME: &'static str = "SealedInvitation";
+impl ::prost::Name for EciesMessage {
+    const NAME: &'static str = "EciesMessage";
     const PACKAGE: &'static str = "xmtp.message_contents";
     fn full_name() -> ::prost::alloc::string::String {
-        "xmtp.message_contents.SealedInvitation".into()
+        "xmtp.message_contents.EciesMessage".into()
     }
     fn type_url() -> ::prost::alloc::string::String {
-        "/xmtp.message_contents.SealedInvitation".into()
+        "/xmtp.message_contents.EciesMessage".into()
     }
 }
-/// Payload for user's consent proof to be set in the invitation
-/// Signifying the conversation should be preapproved for the user on receipt
+/// ContentTypeId is used to identify the type of content stored in a Message.
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
-pub struct ConsentProofPayload {
-    /// the user's signature in hex format
+pub struct ContentTypeId {
+    /// authority governing this content type
     #[prost(string, tag = "1")]
-    pub signature: ::prost::alloc::string::String,
-    /// approximate time when the user signed
-    #[prost(uint64, tag = "2")]
-    pub timestamp: u64,
-    /// version of the payload
-    #[prost(enumeration = "ConsentProofPayloadVersion", tag = "3")]
-    pub payload_version: i32,
+    pub authority_id: ::prost::alloc::string::String,
+    /// type identifier
+    #[prost(string, tag = "2")]
+    pub type_id: ::prost::alloc::string::String,
+    /// major version of the type
+    #[prost(uint32, tag = "3")]
+    pub version_major: u32,
+    /// minor version of the type
+    #[prost(uint32, tag = "4")]
+    pub version_minor: u32,
 }
-impl ::prost::Name for ConsentProofPayload {
-    const NAME: &'static str = "ConsentProofPayload";
+impl ::prost::Name for ContentTypeId {
+    const NAME: &'static str = "ContentTypeId";
     const PACKAGE: &'static str = "xmtp.message_contents";
     fn full_name() -> ::prost::alloc::string::String {
-        "xmtp.message_contents.ConsentProofPayload".into()
+        "xmtp.message_contents.ContentTypeId".into()
     }
     fn type_url() -> ::prost::alloc::string::String {
-        "/xmtp.message_contents.ConsentProofPayload".into()
+        "/xmtp.message_contents.ContentTypeId".into()
     }
 }
-/// Version of consent proof payload
+/// EncodedContent bundles the content with metadata identifying its type
+/// and parameters required for correct decoding and presentation of the content.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct EncodedContent {
+    /// content type identifier used to match the payload with
+    /// the correct decoding machinery
+    #[prost(message, optional, tag = "1")]
+    pub r#type: ::core::option::Option<ContentTypeId>,
+    /// optional encoding parameters required to correctly decode the content
+    #[prost(map = "string, string", tag = "2")]
+    pub parameters: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        ::prost::alloc::string::String,
+    >,
+    /// optional fallback description of the content that can be used in case
+    /// the client cannot decode or render the content
+    #[prost(string, optional, tag = "3")]
+    pub fallback: ::core::option::Option<::prost::alloc::string::String>,
+    /// optional compression; the value indicates algorithm used to
+    /// compress the encoded content bytes
+    #[prost(enumeration = "Compression", optional, tag = "5")]
+    pub compression: ::core::option::Option<i32>,
+    /// encoded content itself
+    #[prost(bytes = "vec", tag = "4")]
+    pub content: ::prost::alloc::vec::Vec<u8>,
+}
+impl ::prost::Name for EncodedContent {
+    const NAME: &'static str = "EncodedContent";
+    const PACKAGE: &'static str = "xmtp.message_contents";
+    fn full_name() -> ::prost::alloc::string::String {
+        "xmtp.message_contents.EncodedContent".into()
+    }
+    fn type_url() -> ::prost::alloc::string::String {
+        "/xmtp.message_contents.EncodedContent".into()
+    }
+}
+/// SignedContent attaches a signature to EncodedContent.
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct SignedContent {
+    /// MUST contain EncodedContent
+    #[prost(bytes = "vec", tag = "1")]
+    pub payload: ::prost::alloc::vec::Vec<u8>,
+    #[prost(message, optional, tag = "2")]
+    pub sender: ::core::option::Option<SignedPublicKeyBundle>,
+    /// MUST be a signature of a concatenation of
+    /// the message header bytes and the payload bytes,
+    /// signed by the sender's pre-key.
+    #[prost(message, optional, tag = "3")]
+    pub signature: ::core::option::Option<Signature>,
+}
+impl ::prost::Name for SignedContent {
+    const NAME: &'static str = "SignedContent";
+    const PACKAGE: &'static str = "xmtp.message_contents";
+    fn full_name() -> ::prost::alloc::string::String {
+        "xmtp.message_contents.SignedContent".into()
+    }
+    fn type_url() -> ::prost::alloc::string::String {
+        "/xmtp.message_contents.SignedContent".into()
+    }
+}
+/// Recognized compression algorithms
+/// protolint:disable ENUM_FIELD_NAMES_ZERO_VALUE_END_WITH
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]
-pub enum ConsentProofPayloadVersion {
-    Unspecified = 0,
-    ConsentProofPayloadVersion1 = 1,
+pub enum Compression {
+    Deflate = 0,
+    Gzip = 1,
 }
-impl ConsentProofPayloadVersion {
+impl Compression {
     /// String value of the enum field names used in the ProtoBuf definition.
     ///
     /// The values are not transformed in any way and thus are considered stable
     /// (if the ProtoBuf definition does not change) and safe for programmatic use.
     pub fn as_str_name(&self) -> &'static str {
         match self {
-            Self::Unspecified => "CONSENT_PROOF_PAYLOAD_VERSION_UNSPECIFIED",
-            Self::ConsentProofPayloadVersion1 => "CONSENT_PROOF_PAYLOAD_VERSION_1",
+            Self::Deflate => "COMPRESSION_DEFLATE",
+            Self::Gzip => "COMPRESSION_GZIP",
         }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
     pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
         match value {
-            "CONSENT_PROOF_PAYLOAD_VERSION_UNSPECIFIED" => Some(Self::Unspecified),
-            "CONSENT_PROOF_PAYLOAD_VERSION_1" => Some(Self::ConsentProofPayloadVersion1),
+            "COMPRESSION_DEFLATE" => Some(Self::Deflate),
+            "COMPRESSION_GZIP" => Some(Self::Gzip),
             _ => None,
         }
-    }
-}
-/// A light pointer for a conversation that contains no decryption keys
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ConversationReference {
-    #[prost(string, tag = "1")]
-    pub topic: ::prost::alloc::string::String,
-    #[prost(string, tag = "2")]
-    pub peer_address: ::prost::alloc::string::String,
-    #[prost(uint64, tag = "3")]
-    pub created_ns: u64,
-    #[prost(message, optional, tag = "4")]
-    pub context: ::core::option::Option<invitation_v1::Context>,
-    #[prost(message, optional, tag = "5")]
-    pub consent_proof_payload: ::core::option::Option<ConsentProofPayload>,
-}
-impl ::prost::Name for ConversationReference {
-    const NAME: &'static str = "ConversationReference";
-    const PACKAGE: &'static str = "xmtp.message_contents";
-    fn full_name() -> ::prost::alloc::string::String {
-        "xmtp.message_contents.ConversationReference".into()
-    }
-    fn type_url() -> ::prost::alloc::string::String {
-        "/xmtp.message_contents.ConversationReference".into()
     }
 }
 /// Message header is encoded separately as the bytes are also used
@@ -1073,118 +1212,22 @@ impl ::prost::Name for DecodedMessage {
         "/xmtp.message_contents.DecodedMessage".into()
     }
 }
-/// ContentTypeId is used to identify the type of content stored in a Message.
+/// SignedPayload is a wrapper for a signature and a payload
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
-pub struct ContentTypeId {
-    /// authority governing this content type
-    #[prost(string, tag = "1")]
-    pub authority_id: ::prost::alloc::string::String,
-    /// type identifier
-    #[prost(string, tag = "2")]
-    pub type_id: ::prost::alloc::string::String,
-    /// major version of the type
-    #[prost(uint32, tag = "3")]
-    pub version_major: u32,
-    /// minor version of the type
-    #[prost(uint32, tag = "4")]
-    pub version_minor: u32,
-}
-impl ::prost::Name for ContentTypeId {
-    const NAME: &'static str = "ContentTypeId";
-    const PACKAGE: &'static str = "xmtp.message_contents";
-    fn full_name() -> ::prost::alloc::string::String {
-        "xmtp.message_contents.ContentTypeId".into()
-    }
-    fn type_url() -> ::prost::alloc::string::String {
-        "/xmtp.message_contents.ContentTypeId".into()
-    }
-}
-/// EncodedContent bundles the content with metadata identifying its type
-/// and parameters required for correct decoding and presentation of the content.
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct EncodedContent {
-    /// content type identifier used to match the payload with
-    /// the correct decoding machinery
-    #[prost(message, optional, tag = "1")]
-    pub r#type: ::core::option::Option<ContentTypeId>,
-    /// optional encoding parameters required to correctly decode the content
-    #[prost(map = "string, string", tag = "2")]
-    pub parameters: ::std::collections::HashMap<
-        ::prost::alloc::string::String,
-        ::prost::alloc::string::String,
-    >,
-    /// optional fallback description of the content that can be used in case
-    /// the client cannot decode or render the content
-    #[prost(string, optional, tag = "3")]
-    pub fallback: ::core::option::Option<::prost::alloc::string::String>,
-    /// optional compression; the value indicates algorithm used to
-    /// compress the encoded content bytes
-    #[prost(enumeration = "Compression", optional, tag = "5")]
-    pub compression: ::core::option::Option<i32>,
-    /// encoded content itself
-    #[prost(bytes = "vec", tag = "4")]
-    pub content: ::prost::alloc::vec::Vec<u8>,
-}
-impl ::prost::Name for EncodedContent {
-    const NAME: &'static str = "EncodedContent";
-    const PACKAGE: &'static str = "xmtp.message_contents";
-    fn full_name() -> ::prost::alloc::string::String {
-        "xmtp.message_contents.EncodedContent".into()
-    }
-    fn type_url() -> ::prost::alloc::string::String {
-        "/xmtp.message_contents.EncodedContent".into()
-    }
-}
-/// SignedContent attaches a signature to EncodedContent.
-#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
-pub struct SignedContent {
-    /// MUST contain EncodedContent
+pub struct SignedPayload {
     #[prost(bytes = "vec", tag = "1")]
     pub payload: ::prost::alloc::vec::Vec<u8>,
     #[prost(message, optional, tag = "2")]
-    pub sender: ::core::option::Option<SignedPublicKeyBundle>,
-    /// MUST be a signature of a concatenation of
-    /// the message header bytes and the payload bytes,
-    /// signed by the sender's pre-key.
-    #[prost(message, optional, tag = "3")]
     pub signature: ::core::option::Option<Signature>,
 }
-impl ::prost::Name for SignedContent {
-    const NAME: &'static str = "SignedContent";
+impl ::prost::Name for SignedPayload {
+    const NAME: &'static str = "SignedPayload";
     const PACKAGE: &'static str = "xmtp.message_contents";
     fn full_name() -> ::prost::alloc::string::String {
-        "xmtp.message_contents.SignedContent".into()
+        "xmtp.message_contents.SignedPayload".into()
     }
     fn type_url() -> ::prost::alloc::string::String {
-        "/xmtp.message_contents.SignedContent".into()
-    }
-}
-/// Recognized compression algorithms
-/// protolint:disable ENUM_FIELD_NAMES_ZERO_VALUE_END_WITH
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
-#[repr(i32)]
-pub enum Compression {
-    Deflate = 0,
-    Gzip = 1,
-}
-impl Compression {
-    /// String value of the enum field names used in the ProtoBuf definition.
-    ///
-    /// The values are not transformed in any way and thus are considered stable
-    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
-    pub fn as_str_name(&self) -> &'static str {
-        match self {
-            Self::Deflate => "COMPRESSION_DEFLATE",
-            Self::Gzip => "COMPRESSION_GZIP",
-        }
-    }
-    /// Creates an enum from field names used in the ProtoBuf definition.
-    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
-        match value {
-            "COMPRESSION_DEFLATE" => Some(Self::Deflate),
-            "COMPRESSION_GZIP" => Some(Self::Gzip),
-            _ => None,
-        }
+        "/xmtp.message_contents.SignedPayload".into()
     }
 }
 /// Composite is used to implement xmtp.org/composite content type
@@ -1232,29 +1275,63 @@ impl ::prost::Name for Composite {
         "/xmtp.message_contents.Composite".into()
     }
 }
-/// EciesMessage is a wrapper for ECIES encrypted payloads
+/// LEGACY: User key bundle V1 using PublicKeys.
+/// The PublicKeys MUST be signed.
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
-pub struct EciesMessage {
-    #[prost(oneof = "ecies_message::Version", tags = "1")]
-    pub version: ::core::option::Option<ecies_message::Version>,
+pub struct ContactBundleV1 {
+    #[prost(message, optional, tag = "1")]
+    pub key_bundle: ::core::option::Option<PublicKeyBundle>,
 }
-/// Nested message and enum types in `EciesMessage`.
-pub mod ecies_message {
-    #[derive(Clone, PartialEq, Eq, Hash, ::prost::Oneof)]
-    pub enum Version {
-        /// Expected to be an ECIES encrypted SignedPayload
-        #[prost(bytes, tag = "1")]
-        V1(::prost::alloc::vec::Vec<u8>),
-    }
-}
-impl ::prost::Name for EciesMessage {
-    const NAME: &'static str = "EciesMessage";
+impl ::prost::Name for ContactBundleV1 {
+    const NAME: &'static str = "ContactBundleV1";
     const PACKAGE: &'static str = "xmtp.message_contents";
     fn full_name() -> ::prost::alloc::string::String {
-        "xmtp.message_contents.EciesMessage".into()
+        "xmtp.message_contents.ContactBundleV1".into()
     }
     fn type_url() -> ::prost::alloc::string::String {
-        "/xmtp.message_contents.EciesMessage".into()
+        "/xmtp.message_contents.ContactBundleV1".into()
+    }
+}
+/// User key bundle V2 using SignedPublicKeys.
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct ContactBundleV2 {
+    #[prost(message, optional, tag = "1")]
+    pub key_bundle: ::core::option::Option<SignedPublicKeyBundle>,
+}
+impl ::prost::Name for ContactBundleV2 {
+    const NAME: &'static str = "ContactBundleV2";
+    const PACKAGE: &'static str = "xmtp.message_contents";
+    fn full_name() -> ::prost::alloc::string::String {
+        "xmtp.message_contents.ContactBundleV2".into()
+    }
+    fn type_url() -> ::prost::alloc::string::String {
+        "/xmtp.message_contents.ContactBundleV2".into()
+    }
+}
+/// Versioned ContactBundle
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct ContactBundle {
+    #[prost(oneof = "contact_bundle::Version", tags = "1, 2")]
+    pub version: ::core::option::Option<contact_bundle::Version>,
+}
+/// Nested message and enum types in `ContactBundle`.
+pub mod contact_bundle {
+    #[derive(Clone, PartialEq, Eq, Hash, ::prost::Oneof)]
+    pub enum Version {
+        #[prost(message, tag = "1")]
+        V1(super::ContactBundleV1),
+        #[prost(message, tag = "2")]
+        V2(super::ContactBundleV2),
+    }
+}
+impl ::prost::Name for ContactBundle {
+    const NAME: &'static str = "ContactBundle";
+    const PACKAGE: &'static str = "xmtp.message_contents";
+    fn full_name() -> ::prost::alloc::string::String {
+        "xmtp.message_contents.ContactBundle".into()
+    }
+    fn type_url() -> ::prost::alloc::string::String {
+        "/xmtp.message_contents.ContactBundle".into()
     }
 }
 /// The message that will be signed by the Client and returned inside the
@@ -1336,82 +1413,5 @@ impl ::prost::Name for FrameAction {
     }
     fn type_url() -> ::prost::alloc::string::String {
         "/xmtp.message_contents.FrameAction".into()
-    }
-}
-/// SignedPayload is a wrapper for a signature and a payload
-#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
-pub struct SignedPayload {
-    #[prost(bytes = "vec", tag = "1")]
-    pub payload: ::prost::alloc::vec::Vec<u8>,
-    #[prost(message, optional, tag = "2")]
-    pub signature: ::core::option::Option<Signature>,
-}
-impl ::prost::Name for SignedPayload {
-    const NAME: &'static str = "SignedPayload";
-    const PACKAGE: &'static str = "xmtp.message_contents";
-    fn full_name() -> ::prost::alloc::string::String {
-        "xmtp.message_contents.SignedPayload".into()
-    }
-    fn type_url() -> ::prost::alloc::string::String {
-        "/xmtp.message_contents.SignedPayload".into()
-    }
-}
-/// LEGACY: User key bundle V1 using PublicKeys.
-/// The PublicKeys MUST be signed.
-#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
-pub struct ContactBundleV1 {
-    #[prost(message, optional, tag = "1")]
-    pub key_bundle: ::core::option::Option<PublicKeyBundle>,
-}
-impl ::prost::Name for ContactBundleV1 {
-    const NAME: &'static str = "ContactBundleV1";
-    const PACKAGE: &'static str = "xmtp.message_contents";
-    fn full_name() -> ::prost::alloc::string::String {
-        "xmtp.message_contents.ContactBundleV1".into()
-    }
-    fn type_url() -> ::prost::alloc::string::String {
-        "/xmtp.message_contents.ContactBundleV1".into()
-    }
-}
-/// User key bundle V2 using SignedPublicKeys.
-#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
-pub struct ContactBundleV2 {
-    #[prost(message, optional, tag = "1")]
-    pub key_bundle: ::core::option::Option<SignedPublicKeyBundle>,
-}
-impl ::prost::Name for ContactBundleV2 {
-    const NAME: &'static str = "ContactBundleV2";
-    const PACKAGE: &'static str = "xmtp.message_contents";
-    fn full_name() -> ::prost::alloc::string::String {
-        "xmtp.message_contents.ContactBundleV2".into()
-    }
-    fn type_url() -> ::prost::alloc::string::String {
-        "/xmtp.message_contents.ContactBundleV2".into()
-    }
-}
-/// Versioned ContactBundle
-#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
-pub struct ContactBundle {
-    #[prost(oneof = "contact_bundle::Version", tags = "1, 2")]
-    pub version: ::core::option::Option<contact_bundle::Version>,
-}
-/// Nested message and enum types in `ContactBundle`.
-pub mod contact_bundle {
-    #[derive(Clone, PartialEq, Eq, Hash, ::prost::Oneof)]
-    pub enum Version {
-        #[prost(message, tag = "1")]
-        V1(super::ContactBundleV1),
-        #[prost(message, tag = "2")]
-        V2(super::ContactBundleV2),
-    }
-}
-impl ::prost::Name for ContactBundle {
-    const NAME: &'static str = "ContactBundle";
-    const PACKAGE: &'static str = "xmtp.message_contents";
-    fn full_name() -> ::prost::alloc::string::String {
-        "xmtp.message_contents.ContactBundle".into()
-    }
-    fn type_url() -> ::prost::alloc::string::String {
-        "/xmtp.message_contents.ContactBundle".into()
     }
 }
